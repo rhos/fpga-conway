@@ -19,36 +19,16 @@ module vga(input logic clk,
     assign y = vc - vbp;
     
     logic btnCSync;
-    sync s(clk,btnC,btnCSync);
+    sync csync(clk,btnC,btnCSync);
+    logic btnDSync;
+    sync dsync(clk,btnD,btnDSync);
     
     divider div(clk, vgaclk);
     vgaController vgaCont(vgaclk, hsync, vsync, hc, vc);
-    videoGen2 videoGen(clk, btnCSync, sw, x, y, red, green, blue);
+    videoGen videoGen(btnDSync, btnCSync, sw, x, y, red, green, blue);
 endmodule
 
-module videoGen2(input logic clk,
-                input logic button,
-                input logic [15:0] sw,
-                input logic [9:0] x,y,
-                output logic [3:0] r,g,b);
-    logic [31:0] rn;
-    lfsr lfsr(clk, button, sw[0], sw, rn);
-    
-    always_comb begin
-        if (x >= 0 && 
-            x < 640 && 
-            y >= 0 && 
-            y < 480 &&
-            rn[(y * 640 + x)/9600]==1)
-        begin
-            {r,g,b} = sw[11:0];
-        end else begin
-            {r,g,b} = 12'd0;
-        end
-    end
-endmodule
-
-module videoGen3(input logic clk,
+module videoGen(input logic clk,
                 input logic button,
                 input logic [15:0] sw,
                 input logic [9:0] x,y,
